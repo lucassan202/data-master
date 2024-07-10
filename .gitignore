@@ -2,3 +2,5 @@ notebook/.ipynb_checkpoints
 notebook/metastore_db
 notebook/derby.log
 notebook/spark-warehouse
+__pycache__
+*.csv
