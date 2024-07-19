@@ -2,6 +2,10 @@ from src.stream_bronze import StreamBronze
 from src.silver import Silver
 from src.problema_gold import GrupoProblema
 from src.reclamacao_gold import ReclamacaoTopTen
+from src.avaliacao_gold import MediaAvaliacao
+from src.uf_gold import UfProblema
+from src.resposta_gold import MediaResposta
+
 import sys
 import logging
 from pyspark.sql import SparkSession
@@ -36,6 +40,12 @@ class Main():
         elif processamento == 'grupo_problema':
             GrupoProblema.run(spark, log, parm2)
         elif processamento == 'top_ten':
-            ReclamacaoTopTen.run(spark, log, parm2)                        
+            ReclamacaoTopTen.run(spark, log, parm2)
+        elif processamento == 'avaliacao':
+            MediaAvaliacao.run(spark, log, parm2) 
+        elif processamento == 'resposta':
+            MediaResposta.run(spark, log, parm2) 
+        elif processamento == 'uf':
+            UfProblema.run(spark, log, parm2)                                     
     
     main(spark, processamento, log, parm2)

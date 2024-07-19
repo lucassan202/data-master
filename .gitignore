@@ -4,3 +4,4 @@ notebook/derby.log
 notebook/spark-warehouse
 __pycache__
 *.csv
+*.txt
