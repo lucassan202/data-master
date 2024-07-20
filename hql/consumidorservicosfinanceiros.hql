@@ -1,4 +1,4 @@
-CREATE EXTERNAL TABLE s_consumidor.consumidorservicosfinanceiros(
+CREATE EXTERNAL TABLE IF NOT EXISTS s_consumidor.consumidorservicosfinanceiros(
   gestor string, 
   canalorigem string, 
   regiao string, 

@@ -1,4 +1,4 @@
-CREATE EXTERNAL TABLE g_consumidor.reclamacaouf(
+CREATE EXTERNAL TABLE IF NOT EXISTS g_consumidor.reclamacaouf(
   nomefantasia string, 
   uf string,
   datrefcarga string, 

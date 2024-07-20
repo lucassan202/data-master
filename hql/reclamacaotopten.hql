@@ -1,4 +1,4 @@
-CREATE EXTERNAL TABLE g_consumidor.reclamacaotopten(
+CREATE EXTERNAL TABLE IF NOT EXISTS g_consumidor.reclamacaotopten(
   nomefantasia string, 
   datrefcarga string, 
   qtdreclamcoes bigint)

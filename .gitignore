@@ -5,3 +5,4 @@ notebook/spark-warehouse
 __pycache__
 *.csv
 *.txt
+hql/hive

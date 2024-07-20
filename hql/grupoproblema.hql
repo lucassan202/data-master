@@ -1,4 +1,4 @@
-CREATE EXTERNAL TABLE g_consumidor.grupoProblema(
+CREATE EXTERNAL TABLE IF NOT EXISTS g_consumidor.grupoProblema(
   nomefantasia string, 
   grupoproblema string, 
   datrefcarga string, 

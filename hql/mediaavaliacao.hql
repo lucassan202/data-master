@@ -1,4 +1,4 @@
-CREATE EXTERNAL TABLE g_consumidor.mediaavaliacao(
+CREATE EXTERNAL TABLE IF NOT EXISTS g_consumidor.mediaavaliacao(
   nomefantasia string, 
   datrefcarga string, 
   mediaAvaliacao double)

@@ -1,4 +1,4 @@
-CREATE EXTERNAL TABLE b_consumidor.consumidor(
+CREATE EXTERNAL TABLE IF NOT EXISTS b_consumidor.consumidor(
   gestor string, 
   canalorigem string, 
   regiao string, 

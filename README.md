@@ -16,7 +16,7 @@ Trata-se de uma plataforma tecnológica de informação, interação e compartil
 
 * Dicionário de dados:
 
-    O dicionário de dados que o consumidor.gov.br disponibiliza se encontra na raíz do projeto:
+    O dicionário de dados que o consumidor.gov.br disponibiliza, se encontra na raíz do projeto:
 
     ```
     dicionario-de-dados-consumidorgovbr-v3.pdf
@@ -39,7 +39,7 @@ Trata-se de uma plataforma tecnológica de informação, interação e compartil
     
         - O projeto foi desenvolvido com as seguintes configurações, não sendo recomendado menos recursos do que estes.
 
-        ![System](/img/system.png)
+            ![System](/img/system.png)
 
         - Docker
         - Anaconda 1.12.3 com python 3.8
@@ -60,17 +60,139 @@ Trata-se de uma plataforma tecnológica de informação, interação e compartil
         O cluster pode ser  iniciado com o seguinte comando:
 
         ```
-            cd docker-hadoop-spark/
-            docker-compose up
+        cd docker-hadoop-spark/
+        docker-compose up
         ```
         Após todos os serviços subirem, será necessário algumas configurações.
 
-        No terminal inspecione a rede `hadoop-spark` e confira qual `IPv4Address` foi atribuido para o `namenode`, este ip deve ser adicionado no seu `/etc/hosts`
+        No terminal inspecione a rede `hadoop-spark` e confira qual `IPv4Address` foi atribuido para o `namenode`, este ip deve ser adicionado no seu `/etc/hosts` conforme imagens abaixo
 
-        ![System](/img/namenode_ip.png)
-        ![System](/img/hosts.png)
+        Comando para inspecionar e editar o hosts
 
         ```
         docker network inspect hadoop-spark
-        vi /etc/host
+
+        vi /etc/hosts
         ```
+        
+        ![System](/img/namenode_ip.png)
+        ![System](/img/hosts.png)
+
+        Após é possível iniciar o projeto executando via bash no terminal, mais a frente irei mostrar como executar de forma automatizada utilizando o `Airflow` no item x.xx
+
+## Iniciando o projeto
+
+* Execução
+
+    Primeiramente iniciamos nosso spark stream que irá realizar a ingestão do csv do consumidor.gov.br na nossa camada bronze. Por default o path onde o processo irá buscar o csv é o `/consumidor/csv` sendo possível altera-lo na shell `/consumidor/shell/run.sh` variável `csv_path`.
+
+    ```
+    bash /consumidor/shell/run.sh stream_bronze
+    ```
+    Este processo fica aguardando novos arquivos caírem no diretório para realizar a ingestão na camada bronze.
+
+    O seguinte processo é a ingestão, filtro e tratamento dos dados na camada silver, nele nós filtramos apenas area de serviços financeiros e bancos. O segundo parametro da shell é a data de extração do arquivo csv. Ex.: 2024-05
+
+    ```
+    bash /consumidor/shell/run.sh silver 2024-05
+    ```
+    Por fim temos 5 visoẽs de agrupamento na camada gold onde:
+        
+    - `Reclamação Top Ten:` top 10 reclamações no mês específico da instituição.
+
+    - `Grupo problema:` reúne a categoria dos principais problemas apontados pelos consumidores
+
+    - `Agrupamento por UF:` realiza o agrupamento(contagem) por UF e nome da instituição
+
+    - `Média Avaliação:` reúne a média agrupada de avaliações dos consumidores por instituição.
+
+    - `Média Tempo de Resposta:` reúne a média agrupada por tempo de resposta em dias que a instituição leva.
+
+    ```
+    bash /consumidor/shell/run.sh grupo_problema 2024-05
+
+    bash /consumidor/shell/run.sh top_ten 2024-05
+
+    bash /consumidor/shell/run.sh avaliacao 2024-05
+
+    bash /consumidor/shell/run.sh resposta 2024-05
+
+    bash /consumidor/shell/run.sh uf 2024-05
+    ```
+
+    Logo após as inserções na camada gold, podemos visualizar os dados através do hive, mas para isso é necessário criar as tabelas apontando para os diretórios da camada gold. Abaixo o script para criação das tabelas.
+
+    ```
+    docker exec -it hive-server bash
+    
+    bash /opt/hql/create_tables.sh
+    ```
+
+    Tabelas criadas:
+
+    ```
+    b_consumidor.consumidor
+
+    s_consumidor.consumidorservicosfinanceiros
+
+    g_consumidor.grupoProblema
+
+    g_consumidor.mediaavaliacao
+
+    g_consumidor.mediaresposta
+
+    g_consumidor.reclamacaouf
+    ```
+
+
+## Realizando consulta sql
+    
+* SQLTools Hive Driver for VSCode
+
+    Para consulta dos dados recomendo instalar a extensão `SQLTools Hive Driver` no `VSCode`
+
+    ![System](/img/sqltools.png)
+
+    Abaixo as configurações de conexão hive:
+
+    ```
+    Connection name: hive
+    Host: localhost
+    Port: 10000
+    Username: scott
+    Password: tiger
+    Hive CLI Connection Protocol Version: V10
+    Show records default limit: 50
+    ```
+    ```
+    select * from s_consumidor.consumidorservicosfinanceiros where datrefcarga='2024-05' limit 10;
+    ```
+    ![System](/img/sql_result.png)
+
+## Execução automatizada Airflow
+
+* Airflow
+    
+    Para execução do airflow standalone utilize os comandos abaixo. Recomendo a utilização da porta 9998 pois a porta 8080 já esta sendo utilizada pelo `spark master`
+    ```
+    airflow webserver --port 9998
+
+    airflow scheduler
+    ```
+    Copie as dags do projeto para dentro do path default do `airflow`
+    ```
+    export MY_DIR=$(cd $(dirname "${0}"); pwd)
+
+    cp ./airflow/dags/*.py $MY_DIR/airflow/dags
+    ```
+
+    A dag run_jobs esta programada para rodar mensalmente e realizar a ingestão da data atual, para execução manual é necessário alterar no arquivo `run_jobs.py` a variável `dat_ref_carga` para o ano-mês desejado.
+    Necessário também alterar o path de apontamento do projeto na variável `path_project`
+
+    ![System](/img/run_jobs_var.png)
+    
+    Acesso o endereço `http://localhost:9998/` e execute as dags `run_stream` e `run_jobs`
+
+    ![System](/img/run_stream.png)
+    ![System](/img/run_jobs.png)
+    
