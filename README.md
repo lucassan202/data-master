@@ -35,164 +35,195 @@ Trata-se de uma plataforma tecnológica de informação, interação e compartil
 
 * Infra-estrutura
 
-    *   pré requisitos
+*   Pré requisitos
     
-        - O projeto foi desenvolvido com as seguintes configurações, não sendo recomendado menos recursos do que estes.
+    - O projeto foi desenvolvido com as seguintes configurações, não sendo recomendado menos recursos do que estes.
 
-            ![System](/img/system.png)
+        ![System](/img/system.png)
 
-        - Docker
-        - Anaconda 1.12.3 com python 3.8
-        - Airflow standalone
-        - PowerBI
-        - VSCode
+    - Docker
+    - Anaconda 1.12.3 com python 3.8
+    - Airflow standalone
+    - PowerBI
+    - VSCode
     
-    * Cluster hadoop-spark
+* Cluster hadoop-spark
 
-        Como parte da solução foi utilizado um cluster  hadoo-spark baseado no projeto `Marcel-Jan/  docker-hadoop-spark` 
+    Como parte da solução foi utilizado um cluster hadoop-spark baseado no projeto `Marcel-Jan/ docker-hadoop-spark` 
 
-        ```
-        https://github.com/marcel-jan/docker-hadoop-spark
-        ```
+    ```
+    https://github.com/marcel-jan/docker-hadoop-spark
+    ```
 
-        Foram realizadas algumas alterações e melhorias para    adaptação ao cenário proposto. 
-        
-        O cluster pode ser  iniciado com o seguinte comando:
+    Foram realizadas algumas alterações e melhorias para  adaptação ao cenário proposto. 
+    
+    O cluster pode ser iniciado com o seguinte comando:
 
-        ```
-        cd docker-hadoop-spark/
-        docker-compose up
-        ```
-        Após todos os serviços subirem, será necessário algumas configurações.
+    ```
+    cd docker-hadoop-spark/
+    docker-compose up
+    ```
 
-        No terminal inspecione a rede `hadoop-spark` e confira qual `IPv4Address` foi atribuido para o `namenode`, este ip deve ser adicionado no seu `/etc/hosts` conforme imagens abaixo
+    Após todos os serviços subirem, será necessário algumas configurações.
 
-        Comando para inspecionar e editar o hosts
+    No terminal inspecione a rede `hadoop-spark` e confira qual `IPv4Address` foi atribuido para o`namenode`, este ip deve ser adicionado no seu `etc/hosts` conforme imagens abaixo
 
-        ```
-        docker network inspect hadoop-spark
-
-        vi /etc/hosts
-        ```
-        
-        ![System](/img/namenode_ip.png)
-        ![System](/img/hosts.png)
-
-        Após é possível iniciar o projeto executando via bash no terminal, mais a frente irei mostrar como executar de forma automatizada utilizando o `Airflow` no item x.xx
+    Comando para inspecionar e editar o hosts:
+    ```
+    docker network inspect hadoop-spark
+    vi /etc/hosts
+    ```
+    
+    ![System](/img/namenode_ip.png)
+    ![System](/img/hosts.png)
+    
+    Após é possível iniciar o projeto executando via bash no terminal, mais a frente irei mostrar comoexecutar de forma automatizada utilizando o`Airflow` no item x.xx
 
 ## Iniciando o projeto
 
-* Execução
+Primeiramente devemos iniciar nosso spark stream que irá realizar a ingestão do csv do consumidor.gov.br na nossa camada bronze. Por default o path onde o processo irá buscar o csv é o `/consumidor/csv` sendo possível altera-lo na shell `/consumidor/shell/run.sh` variável `csv_path`.
 
-    Primeiramente iniciamos nosso spark stream que irá realizar a ingestão do csv do consumidor.gov.br na nossa camada bronze. Por default o path onde o processo irá buscar o csv é o `/consumidor/csv` sendo possível altera-lo na shell `/consumidor/shell/run.sh` variável `csv_path`.
+```
+bash /consumidor/shell/run.sh stream_bronze
+```
+Este processo fica aguardando novos arquivos caírem no diretório para realizar a ingestão na camada bronze.
 
-    ```
-    bash /consumidor/shell/run.sh stream_bronze
-    ```
-    Este processo fica aguardando novos arquivos caírem no diretório para realizar a ingestão na camada bronze.
+O seguinte processo é a ingestão, filtro e tratamento dos dados na camada silver, nele é realizado a filtragem apenas para área de serviços financeiros e bancos. O segundo parametro da shell é a data de extração do arquivo csv. Ex.: 2024-05
 
-    O seguinte processo é a ingestão, filtro e tratamento dos dados na camada silver, nele nós filtramos apenas area de serviços financeiros e bancos. O segundo parametro da shell é a data de extração do arquivo csv. Ex.: 2024-05
-
-    ```
-    bash /consumidor/shell/run.sh silver 2024-05
-    ```
-    Por fim temos 5 visoẽs de agrupamento na camada gold onde:
+```
+bash /consumidor/shell/run.sh silver 2024-05
+```
+Por fim temos 5 visoẽs de agrupamento na camada gold onde:
         
-    - `Reclamação Top Ten:` top 10 reclamações no mês específico da instituição.
+- `Reclamação Top Ten:` top 10 reclamações no mês específico por instituição.
 
-    - `Grupo problema:` reúne a categoria dos principais problemas apontados pelos consumidores
+- `Grupo problema:` reúne as categorias dos principais problemas apontados pelos consumidores
 
-    - `Agrupamento por UF:` realiza o agrupamento(contagem) por UF e nome da instituição
+- `Agrupamento por UF:` realiza o agrupamento(contagem) por UF e nome da instituição
 
-    - `Média Avaliação:` reúne a média agrupada de avaliações dos consumidores por instituição.
+- `Média Avaliação:` reúne a média agrupada de avaliações dos consumidores por instituição.
 
-    - `Média Tempo de Resposta:` reúne a média agrupada por tempo de resposta em dias que a instituição leva.
+- `Média Tempo de Resposta:` reúne a média agrupada por tempo de resposta em dias que a instituição leva.
 
-    ```
-    bash /consumidor/shell/run.sh grupo_problema 2024-05
+```
+bash /consumidor/shell/run.sh grupo_problema 2024-05
 
-    bash /consumidor/shell/run.sh top_ten 2024-05
+bash /consumidor/shell/run.sh top_ten 2024-05
 
-    bash /consumidor/shell/run.sh avaliacao 2024-05
+bash /consumidor/shell/run.sh avaliacao 2024-05
 
-    bash /consumidor/shell/run.sh resposta 2024-05
+bash /consumidor/shell/run.sh resposta 2024-05
 
-    bash /consumidor/shell/run.sh uf 2024-05
-    ```
+bash /consumidor/shell/run.sh uf 2024-05
+```
 
-    Logo após as inserções na camada gold, podemos visualizar os dados através do hive, mas para isso é necessário criar as tabelas apontando para os diretórios da camada gold. Abaixo o script para criação das tabelas.
+Logo após as inserções na camada gold, podemos visualizar os dados através do hive, mas para isso é necessário criar as tabelas apontando para os diretórios da camada gold. Abaixo o script para criação das tabelas.
 
-    ```
-    docker exec -it hive-server bash
-    
-    bash /opt/hql/create_tables.sh
-    ```
+```
+docker exec -it hive-server bash
 
-    Tabelas criadas:
+bash /opt/hql/create_tables.sh
+```
 
-    ```
-    b_consumidor.consumidor
+Tabelas criadas após a execução do script:
 
-    s_consumidor.consumidorservicosfinanceiros
+```
+b_consumidor.consumidor
 
-    g_consumidor.grupoProblema
+s_consumidor.consumidorservicosfinanceiros
 
-    g_consumidor.mediaavaliacao
+g_consumidor.grupoProblema
 
-    g_consumidor.mediaresposta
+g_consumidor.mediaavaliacao
 
-    g_consumidor.reclamacaouf
-    ```
+g_consumidor.mediaresposta
+
+g_consumidor.reclamacaouf
+```
 
 
 ## Realizando consulta sql
+
+Para consulta dos dados recomendo instalar a extensão `SQLTools Hive Driver` no `VSCode`
+
+![System](/img/sqltools.png)
+
+Abaixo as configurações de conexão hive:
+
+```
+Connection name: hive
+Host: localhost
+Port: 10000
+Username: scott
+Password: tiger
+Hive CLI Connection Protocol Version: V10
+Show records default limit: 50
+```
+Exemplo de query para consultar os dados da camada silver:
+```
+select * from s_consumidorconsumidorservicosfinanceiros wheredatrefcarga='2024-05' limit 10;
+```
+Resultado da consulta:
+![System](/img/sql_result.png)
+
+## Execução automatizada Airflow 
+Para execução do airflow standalone utilize os comandos abaixo. Recomendo a utilização da porta 9998 pois a porta 8080 já esta sendo utilizada pelo `spark master`
+```
+airflow webserver --port 9998
+
+airflow scheduler
+```
+Copie as dags do projeto para dentro do path default do `airflow`
+```
+export MY_DIR=$(cd $(dirname "${0}"); pwd)
+
+cp ./airflow/dags/*.py $MY_DIR/airflow/dags
+```
+
+A dag run_jobs esta programada para rodar mensalmente e realizar a ingestão da data atual. Para execução manual é necessário alterar no arquivo `run_jobs.py` a variável `dat_ref_carga` para o ano-mês desejado.
+
+Necessário também alterar o path de apontamento do projeto na variável `path_project`
+
+![System](/img/run_jobs_var.png)
     
-* SQLTools Hive Driver for VSCode
+Acesse o endereço `http://localhost:9998/` e execute as dags `run_stream` e `run_jobs`
 
-    Para consulta dos dados recomendo instalar a extensão `SQLTools Hive Driver` no `VSCode`
-
-    ![System](/img/sqltools.png)
-
-    Abaixo as configurações de conexão hive:
-
-    ```
-    Connection name: hive
-    Host: localhost
-    Port: 10000
-    Username: scott
-    Password: tiger
-    Hive CLI Connection Protocol Version: V10
-    Show records default limit: 50
-    ```
-    ```
-    select * from s_consumidor.consumidorservicosfinanceiros where datrefcarga='2024-05' limit 10;
-    ```
-    ![System](/img/sql_result.png)
-
-## Execução automatizada Airflow
-
-* Airflow
+Job stream que realiza a inserção do csv na camada bronze:
+![System](/img/run_stream.png)
     
-    Para execução do airflow standalone utilize os comandos abaixo. Recomendo a utilização da porta 9998 pois a porta 8080 já esta sendo utilizada pelo `spark master`
-    ```
-    airflow webserver --port 9998
+Execução da ingestão na camada silver e gold posteriormente:
+![System](/img/run_jobs.png)
 
-    airflow scheduler
-    ```
-    Copie as dags do projeto para dentro do path default do `airflow`
-    ```
-    export MY_DIR=$(cd $(dirname "${0}"); pwd)
 
-    cp ./airflow/dags/*.py $MY_DIR/airflow/dags
-    ```
+## Monitoramento e observabilidade
 
-    A dag run_jobs esta programada para rodar mensalmente e realizar a ingestão da data atual, para execução manual é necessário alterar no arquivo `run_jobs.py` a variável `dat_ref_carga` para o ano-mês desejado.
-    Necessário também alterar o path de apontamento do projeto na variável `path_project`
-
-    ![System](/img/run_jobs_var.png)
+Para este tópico é utilizada duas principais ferrametas `prometheus` e `grafana`.
     
-    Acesso o endereço `http://localhost:9998/` e execute as dags `run_stream` e `run_jobs`
+* `Prometheus` É responsável por realizar a coleta de logs e métricas;
+* `Grafana` Possibilita a visualização em dashboards das coletas realizadas pelo `prometheus`
 
-    ![System](/img/run_stream.png)
-    ![System](/img/run_jobs.png)
-    
+Há também os exporters que são utilizados para extrair/coletar as métricas nos serviços de origem como `docker`, `hdfs` etc.
+
+No projeto estamos utilizando os seguintes exporters:
+
+* `hdfs_exporter` - Exporta estatísticas do Hadoop HDFS como número de diretórios, número de arquivos, número de blocos etc.
+* `node_exporter` - Exporta dados de telemetria de um nó especifico 
+* `cadvisor` - Exporta dados de telemetria do docker
+
+Para acessar o `grafana`, utilize o seguinte endereço `localhost:3000` usuário `admin` e senha `admin`. Após acessar vá em Connections -> Data source e clique em `+ Add new data source`.
+
+Em Connection adicione a url `http://prometheus:9090` e depois clique em `Save & test`. Pronto a conexão com o prometheus já foi realizada, basta agora importarmos os dashboards para visualizar as métricas.
+
+Na home clique em dashboards e depois no botão `New`, vá na opção `Import`.
+
+- Dashboard hadoop-exporter utilize o código `12236`
+
+    ![System](/img/hadoop-exporter.png)
+
+- Dashboard docker monitoring utilize o código `193`
+
+    ![System](/img/docker-monitor.png)
+
+- Dashboard node-exporter utilize o código `1860`
+
+    ![System](/img/node-exporter.png)
