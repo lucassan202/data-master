@@ -161,7 +161,7 @@ Show records default limit: 50
 ```
 Exemplo de query para consultar os dados da camada silver:
 ```
-select * from s_consumidorconsumidorservicosfinanceiros wheredatrefcarga='2024-05' limit 10;
+select * from s_consumidor.consumidorservicosfinanceiros where datrefcarga='2024-05' limit 10;
 ```
 Resultado da consulta:
 ![System](/img/sql_result.png)
@@ -227,3 +227,39 @@ Na home clique em dashboards e depois no botão `New`, vá na opção `Import`.
 - Dashboard node-exporter utilize o código `1860`
 
     ![System](/img/node-exporter.png)
+
+## Dashboards e visualizações dos dados
+
+Para visualização dos dados é utilizado o `Power BI` através de uma maquina virtual com Windows 10.
+
+Para conexão com o Hive basta selecionar Obter dados e selecionar `LLAP do Hive`. As configurações para conexão são as mesmas encontradas no item x.xx.
+
+Você pode importar as visualizações pré prontas no seguinte diretório do projeto:
+
+```
+/powerbi/Data Master Consumidor.pbix
+```
+
+- Quantidade de reclamações por instituição
+
+     ![System](/img/quantidade_reclamacoes.png)
+
+- Quantidade de reclamações por instituição v2
+
+     ![System](/img/quantidade_reclamacoes_v2.png)
+
+- Quantidade de reclamações por Assunto, "nuvem de palavras"
+
+     ![System](/img/nuvem_palavras.png)
+
+- Quantidade de reclamações por UF
+
+     ![System](/img/reclamacoes_uf.png)
+
+- Média de avaliação por instituição
+
+     ![System](/img/media_avaliacao.png)
+
+- Média tempo de resposta por instituição
+
+     ![System](/img/tempo_medio_reposta.png)     
