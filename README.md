@@ -92,7 +92,7 @@ vi /etc/hosts
 ![System](/img/namenode_ip.png)
 ![System](/img/hosts.png)
     
-Após é possível iniciar o projeto executando via bash no terminal, mais a frente irei mostrar como executar de forma automatizada utilizando o`Airflow` no item [6. Execução automatizada Airflow ](#6-execucao-automatizada-airflow)
+Após é possível iniciar o projeto executando via bash no terminal, mais a frente irei mostrar como executar de forma automatizada utilizando o`Airflow` no item [6. Execução automatizada Airflow ](#6-execução-automatizada-airflow)
 
 ## 4. Iniciando o projeto
 
