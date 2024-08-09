@@ -31,14 +31,14 @@ Trata-se de uma plataforma tecnológica de informação, interação e compartil
 
 ## 2. Arquitetura
 
-2.1. Dicionário de dados:
+### 2.1. Dicionário de dados:
 
 O dicionário de dados que o consumidor.gov.br disponibiliza, se encontra na raíz do projeto:
 
 ```
 dicionario-de-dados-consumidorgovbr-v3.pdf
 ```
-2.2. Arquitetura
+### 2.2. Arquitetura
     
 Para o projeto foi utilizada a arquitetura `Medalhão` de dados. Que pode ser ilustrada na figura abaixo:
     
@@ -50,7 +50,7 @@ Além da arquitetura de dados, o projeto conta com ferramentas de observabilidad
 
 ## 3. Solução técnica
 
-3.1.   Pré requisitos
+### 3.1.   Pré requisitos
     
 - O projeto foi desenvolvido com as seguintes configurações, não sendo recomendado menos recursos do que estes.
 
@@ -62,7 +62,7 @@ Além da arquitetura de dados, o projeto conta com ferramentas de observabilidad
 - Power BI
 - VSCode
     
-3.2. Cluster hadoop-spark
+### 3.2. Cluster hadoop-spark
 
 Como parte da solução foi utilizado um cluster hadoop-spark baseado no projeto `Marcel-Jan/ docker-hadoop-spark` 
 
