@@ -14,4 +14,4 @@ class ReclamacaoTopTen():
           .orderBy(col('qtdReclamcoes'), ascending=False)\
           .limit(10)
         
-        data.write(consumidor, gReclamacaotopten, log)
+        data.write(consumidor, gReclamacaotopten, log, spark, datRefCarga)

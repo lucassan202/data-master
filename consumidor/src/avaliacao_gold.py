@@ -13,4 +13,4 @@ class MediaAvaliacao():
                                 .groupBy(col('nomefantasia'), col('datRefCarga'))\
                                 .agg(round(sum(col('notaconsumidor'))/count(col('nomefantasia')), 2).alias('mediaAvaliacao'))
         
-        data.write(consumidor, gMediaAvaliacao, log)
+        data.write(consumidor, gMediaAvaliacao, log, spark, datRefCarga)

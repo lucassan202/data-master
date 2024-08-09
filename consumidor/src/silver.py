@@ -28,4 +28,4 @@ class Silver():
 
         consumidor = consumidor.filter((col('nomefantasia').like('Banco%')) & (col('area')=='Serviços Financeiros') )
 
-        data.write(consumidor, sConsumidor, log)        
+        data.write(consumidor, sConsumidor, log, spark, datRefCarga)

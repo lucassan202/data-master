@@ -13,4 +13,4 @@ class MediaResposta():
                                 .groupBy(col('nomefantasia'), col('datRefCarga'))\
                                 .agg(round(sum(col('temporesposta'))/count(col('nomefantasia')), 0).alias('mediaRespostaDias'))
         
-        data.write(consumidor, gMediaReposta, log)
+        data.write(consumidor, gMediaReposta, log, spark, datRefCarga)

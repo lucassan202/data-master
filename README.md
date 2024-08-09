@@ -6,80 +6,95 @@ O projeto tende a abordar mais especificamente reclamações relacionadas a serv
 
 Os dados utilizados são públicos e podem ser extraídos através do site https://dados.mj.gov.br/dataset/reclamacoes-do-consumidor-gov-br
 
-## Sobre o Consumidor.gov.br
+## Sumário
+
+- [1. Sobre o Consumidor.gov.br](#1-introdução)
+- [2. Arquitetura](#2-Arquitetura)
+    - [2.1. Dicionário de dados](#21-dicionario-de-dados)
+    - [2.1. Arquitetura](#22-arquitetura)
+- [3. Solução Técnica](#3-solucao-tecnica)    
+    - [3.1. Pré Requisitos](#31-pre-requisitos)
+    - [3.2. Cluster hadoop-spark](#31-cluster-hadoop-spark)
+- [4. Iniciando o projeto](#4-iniciando-o-projeto)
+- [5. Realizando consulta SQL](#5-realizando-consulta-sql)
+- [6. Execução automatizada Airflow ](#6-execucao-automatizada-airflow)
+- [7 Monitoramento e observabilidade ](#7-monitoramento-e-observabilidade)
+- [8 Dashboards e visualizações dos dados ](#8-dashboards-e-visualizacoes-dos-dados)
+- [9  Pontos de melhoria](#9-pontos-de-melhoria)
+- [10 Conclusão ](#10-conclusao)
+
+## 1. Sobre o Consumidor.gov.br
 
 O Consumidor.gov.br é um novo serviço público para solução alternativa de conflitos de consumo por meio da internet, que permite a interlocução direta entre consumidores e empresas, fornece ao Estado informações essenciais à elaboração e implementação de políticas públicas de defesa dos consumidores e incentiva a competitividade no mercado pela melhoria da qualidade e do atendimento ao consumidor.
 
 Trata-se de uma plataforma tecnológica de informação, interação e compartilhamento de dados, monitorada pelos Procons e pela Secretaria Nacional do Consumidor do Ministério da Justiça, com o apoio da sociedade.
 
-## Arquitetura
+## 2. Arquitetura
 
-* Dicionário de dados:
+2.1 Dicionário de dados:
 
-    O dicionário de dados que o consumidor.gov.br disponibiliza, se encontra na raíz do projeto:
+O dicionário de dados que o consumidor.gov.br disponibiliza, se encontra na raíz do projeto:
 
-    ```
-    dicionario-de-dados-consumidorgovbr-v3.pdf
-    ```
-* Arquitetura
+```
+dicionario-de-dados-consumidorgovbr-v3.pdf
+```
+2.2 Arquitetura
     
-    Para o nosso projeto foi utilizada a arquitetura `Medalhão` de dados. Que pode ser ilustrada na figura abaixo:
+Para o projeto foi utilizada a arquitetura `Medalhão` de dados. Que pode ser ilustrada na figura abaixo:
     
-    ![Databricks Medallion Architecture](/img/medalhao.webp)
+![Databricks Medallion Architecture](/img/medalhao.webp)
 
-    Seu principal benefício é realizar uma organização dentro do repositório, distribuindo os dados em várias camadas/níveis diferentes e que ao mesmo tempo possam atender necessidades diferentes do negócio, mantendo o ambiente seguro, organizado e de fácil compreensão.
+Seu principal benefício é realizar uma organização dentro do repositório, distribuindo os dados em várias camadas/níveis diferentes e que ao mesmo tempo possam atender necessidades diferentes do negócio, mantendo o ambiente seguro, organizado e de fácil compreensão.
 
-    Além da arquitetura de dados, o projeto conta com ferramentas de observabilidade (`Prometheus`, `Grafana`) e orquestração `Airflow` para execução dos pipelines de ingestão de dados.
+Além da arquitetura de dados, o projeto conta com ferramentas de observabilidade (`Prometheus`, `Grafana`), orquestração `Airflow` para execução dos pipelines de ingestão de dados e dashboards interativos para visualização dos dados utilizando o `Power BI`.
 
-## Solução técnica
+## 3. Solução técnica
 
-* Infra-estrutura
-
-*   Pré requisitos
+3.1   Pré requisitos
     
-    - O projeto foi desenvolvido com as seguintes configurações, não sendo recomendado menos recursos do que estes.
+- O projeto foi desenvolvido com as seguintes configurações, não sendo recomendado menos recursos do que estes.
 
-        ![System](/img/system.png)
+    ![System](/img/system.png)
 
-    - Docker
-    - Anaconda 1.12.3 com python 3.8
-    - Airflow standalone
-    - PowerBI
-    - VSCode
+- Docker
+- Anaconda 1.12.3 com python 3.8
+- Airflow standalone
+- Power BI
+- VSCode
     
-* Cluster hadoop-spark
+3.2 Cluster hadoop-spark
 
-    Como parte da solução foi utilizado um cluster hadoop-spark baseado no projeto `Marcel-Jan/ docker-hadoop-spark` 
+Como parte da solução foi utilizado um cluster hadoop-spark baseado no projeto `Marcel-Jan/ docker-hadoop-spark` 
 
-    ```
-    https://github.com/marcel-jan/docker-hadoop-spark
-    ```
+```
+https://github.com/marcel-jan/docker-hadoop-spark
+```
 
-    Foram realizadas algumas alterações e melhorias para  adaptação ao cenário proposto. 
+Foram realizadas algumas alterações e melhorias para  adaptação ao cenário proposto. 
     
-    O cluster pode ser iniciado com o seguinte comando:
+O cluster pode ser iniciado com o seguinte comando:
 
-    ```
-    cd docker-hadoop-spark/
-    docker-compose up
-    ```
+```
+cd docker-hadoop-spark/
+docker-compose up
+```
 
-    Após todos os serviços subirem, será necessário algumas configurações.
+Após todos os serviços subirem, será necessário algumas configurações.
 
-    No terminal inspecione a rede `hadoop-spark` e confira qual `IPv4Address` foi atribuido para o`namenode`, este ip deve ser adicionado no seu `etc/hosts` conforme imagens abaixo
+No terminal inspecione a rede `hadoop-spark` e confira qual `IPv4Address` foi atribuido para o`namenode`, este ip deve ser adicionado no seu `etc/hosts` conforme imagens abaixo
 
-    Comando para inspecionar e editar o hosts:
-    ```
-    docker network inspect hadoop-spark
-    vi /etc/hosts
-    ```
+Comando para inspecionar e editar o hosts:
+```
+docker network inspect hadoop-spark
+vi /etc/hosts
+```
     
-    ![System](/img/namenode_ip.png)
-    ![System](/img/hosts.png)
+![System](/img/namenode_ip.png)
+![System](/img/hosts.png)
     
-    Após é possível iniciar o projeto executando via bash no terminal, mais a frente irei mostrar comoexecutar de forma automatizada utilizando o`Airflow` no item x.xx
+Após é possível iniciar o projeto executando via bash no terminal, mais a frente irei mostrar como executar de forma automatizada utilizando o`Airflow` no item [6. Execução automatizada Airflow ](#6-execucao-automatizada-airflow)
 
-## Iniciando o projeto
+## 4. Iniciando o projeto
 
 Primeiramente devemos iniciar nosso spark stream que irá realizar a ingestão do csv do consumidor.gov.br na nossa camada bronze. Por default o path onde o processo irá buscar o csv é o `/consumidor/csv` sendo possível altera-lo na shell `/consumidor/shell/run.sh` variável `csv_path`.
 
@@ -142,7 +157,7 @@ g_consumidor.reclamacaouf
 ```
 
 
-## Realizando consulta sql
+## 5. Realizando consulta sql
 
 Para consulta dos dados recomendo instalar a extensão `SQLTools Hive Driver` no `VSCode`
 
@@ -166,7 +181,7 @@ select * from s_consumidor.consumidorservicosfinanceiros where datrefcarga='2024
 Resultado da consulta:
 ![System](/img/sql_result.png)
 
-## Execução automatizada Airflow 
+## 6. Execução automatizada Airflow 
 Para execução do airflow standalone utilize os comandos abaixo. Recomendo a utilização da porta 9998 pois a porta 8080 já esta sendo utilizada pelo `spark master`
 ```
 airflow webserver --port 9998
@@ -195,7 +210,7 @@ Execução da ingestão na camada silver e gold posteriormente:
 ![System](/img/run_jobs.png)
 
 
-## Monitoramento e observabilidade
+## 7. Monitoramento e observabilidade
 
 Para este tópico é utilizada duas principais ferrametas `prometheus` e `grafana`.
     
@@ -228,11 +243,11 @@ Na home clique em dashboards e depois no botão `New`, vá na opção `Import`.
 
     ![System](/img/node-exporter.png)
 
-## Dashboards e visualizações dos dados
+## 8. Dashboards e visualizações dos dados
 
 Para visualização dos dados é utilizado o `Power BI` através de uma maquina virtual com Windows 10.
 
-Para conexão com o Hive basta selecionar Obter dados e selecionar `LLAP do Hive`. As configurações para conexão são as mesmas encontradas no item x.xx.
+Para conexão com o Hive basta selecionar Obter dados e selecionar `LLAP do Hive`. As configurações para conexão são as mesmas encontradas no item [5. Realizando consulta SQL](#5-realizando-consulta-sql).
 
 Você pode importar as visualizações pré prontas no seguinte diretório do projeto:
 
@@ -263,3 +278,22 @@ Você pode importar as visualizações pré prontas no seguinte diretório do pr
 - Média tempo de resposta por instituição
 
      ![System](/img/tempo_medio_reposta.png)     
+
+## 9. Pontos de melhoria
+
+- Processo batch para baixar automaticamente arquivo na origem;
+- Criar alertas nas ferramentas de monitoramento(grafana e airflow), caso haja gargalos de recursos e problemas nas execuções;
+- Dimensionar recursos para execução dos processos;
+- Criar ferramenta de extração dos textos das reclamações do site consumidor.gov para realizar uma análise mais detalhada dos motivos das reclamações;
+- A partir dos textos realizar análise de sentimento e inferir notas;
+- Implementar integração com ferramentas cloud para escalonamento de recursos;
+- Criar outras visualizações gold a partir dos dados silver como faixa etária, como contratou, orgão responsável pela reclamação, se procurou a empresa antes da reclamação, etc;
+
+## 10. Conclusão
+
+Este projeto oferece uma solução robusta para um case de engenharia de dados, cobrindo todo o processo desde a ingestão dos dados com `Spark-Stream` até a visualização no `Power BI` através de dashboards interativos. 
+
+Ao longo do desenvolvimento, foram abordados temas essenciais como `arquitetura medalhão`, `monitoramento e observabilidade`, e `pipeline de ingestão`, demonstrando a completude e a complexidade de um projeto de engenharia de dados.
+
+Além disso, foram identificados pontos de melhorias que serão implementados em versões futuras, garantindo a evolução contínua do projeto.
+

@@ -1,7 +1,7 @@
 import pendulum 
 
 from airflow.decorators import dag, task
-dat_ref_carga = '2024-05'
+dat_ref_carga = '2024-06'
 path_project = '/home/besgam/Projetos/data-master/consumidor/shell/run.sh'
 
 @dag(schedule='@monthly', start_date=pendulum.datetime(2024, 7, 1), catchup=False)

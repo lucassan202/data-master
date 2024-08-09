@@ -12,4 +12,4 @@ class GrupoProblema():
         consumidor = consumidor.groupBy(col('nomefantasia'), col('grupoProblema'),col('datRefCarga'))\
                                 .agg(count(col('nomefantasia')).alias('qtdReclamcoes'))
         
-        data.write(consumidor, gGrupoproblema, log)
+        data.write(consumidor, gGrupoproblema, log, spark, datRefCarga)
