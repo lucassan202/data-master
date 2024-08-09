@@ -8,20 +8,20 @@ Os dados utilizados são públicos e podem ser extraídos através do site https
 
 ## Sumário
 
-- [1. Sobre o Consumidor.gov.br](#1-introdução)
-- [2. Arquitetura](#2-Arquitetura)
+- [1. Sobre o Consumidor.gov.br](#1-sobre-o-consumidorgovbr)
+- [2. Arquitetura](#2-arquitetura)
     - [2.1. Dicionário de dados](#21-dicionario-de-dados)
     - [2.1. Arquitetura](#22-arquitetura)
-- [3. Solução Técnica](#3-solucao-tecnica)    
+- [3. Solução Técnica](#3-solução-técnica)    
     - [3.1. Pré Requisitos](#31-pre-requisitos)
     - [3.2. Cluster hadoop-spark](#31-cluster-hadoop-spark)
 - [4. Iniciando o projeto](#4-iniciando-o-projeto)
 - [5. Realizando consulta SQL](#5-realizando-consulta-sql)
-- [6. Execução automatizada Airflow ](#6-execucao-automatizada-airflow)
+- [6. Execução automatizada Airflow ](#6-execução-automatizada-airflow)
 - [7 Monitoramento e observabilidade ](#7-monitoramento-e-observabilidade)
-- [8 Dashboards e visualizações dos dados ](#8-dashboards-e-visualizacoes-dos-dados)
+- [8 Dashboards e visualizações dos dados ](#8-dashboards-e-visualizações-dos-dados)
 - [9  Pontos de melhoria](#9-pontos-de-melhoria)
-- [10 Conclusão ](#10-conclusao)
+- [10 Conclusão ](#10-conclusão)
 
 ## 1. Sobre o Consumidor.gov.br
 
@@ -31,14 +31,14 @@ Trata-se de uma plataforma tecnológica de informação, interação e compartil
 
 ## 2. Arquitetura
 
-2.1 Dicionário de dados:
+2.1. Dicionário de dados:
 
 O dicionário de dados que o consumidor.gov.br disponibiliza, se encontra na raíz do projeto:
 
 ```
 dicionario-de-dados-consumidorgovbr-v3.pdf
 ```
-2.2 Arquitetura
+2.2. Arquitetura
     
 Para o projeto foi utilizada a arquitetura `Medalhão` de dados. Que pode ser ilustrada na figura abaixo:
     
@@ -50,7 +50,7 @@ Além da arquitetura de dados, o projeto conta com ferramentas de observabilidad
 
 ## 3. Solução técnica
 
-3.1   Pré requisitos
+3.1.   Pré requisitos
     
 - O projeto foi desenvolvido com as seguintes configurações, não sendo recomendado menos recursos do que estes.
 
@@ -62,7 +62,7 @@ Além da arquitetura de dados, o projeto conta com ferramentas de observabilidad
 - Power BI
 - VSCode
     
-3.2 Cluster hadoop-spark
+3.2. Cluster hadoop-spark
 
 Como parte da solução foi utilizado um cluster hadoop-spark baseado no projeto `Marcel-Jan/ docker-hadoop-spark` 
 
