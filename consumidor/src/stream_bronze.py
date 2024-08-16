@@ -1,6 +1,9 @@
 from utils.tables import bConsumidor, tmpCheckpoint
-from pyspark.sql.functions import lit, col, substring
+from pyspark.sql.functions import lit, col, substring, to_timestamp
 from pyspark.sql.types import StructType
+from datetime import datetime
+
+dateTimeNow = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 class StreamBronze():
     def run(spark, log, pathCsv):
@@ -45,7 +48,8 @@ class StreamBronze():
           .option("sep", ";") \
           .schema(schema) \
           .csv(f"{pathCsv}/basecompleta*.csv") \
-          .withColumn("datRefCarga", lit(substring(col('datafinalizacao'),1,7)))
+          .withColumn("datRefCarga", lit(substring(col('datafinalizacao'),1,7))) \
+          .withColumn("datProc", to_timestamp(lit(dateTimeNow), "yyyy-MM-dd HH:mm:ss"))
                 
         log.info("Iniciando escrita bronze")
         query = inputDF.writeStream \
@@ -53,6 +57,10 @@ class StreamBronze():
                 .format("delta") \
                 .option("path", bConsumidor) \
                 .option("checkpointLocation", tmpCheckpoint) \
-                .start()        
+                .start()          
 
         query.awaitTermination()
+        
+        f = open(f"{pathCsv}/basecompleta.bst", "w")
+        f.write(dateTimeNow)
+        f.close()        

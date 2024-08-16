@@ -22,7 +22,7 @@ class Silver():
                , when(col('respondida') == 'S', lit(1)).otherwise(lit(0)).cast(BooleanType())
               ]
                         
-        consumidor = data.read(bConsumidor, datRefCarga, spark, log)
+        consumidor = data.read(bConsumidor, spark, log, True)
 
         consumidor = functions.qualifyTypeColumn(consumidor, columns, expressions)
 

@@ -7,7 +7,7 @@ class MediaResposta():
     def run(spark, log, datRefCarga):        
         data = Data()
 
-        consumidor = data.read(sConsumidor, datRefCarga, spark, log)
+        consumidor = data.read(sConsumidor, spark, log, True)
 
         consumidor = consumidor.filter(col('respondida')==1)\
                                 .groupBy(col('nomefantasia'), col('datRefCarga'))\

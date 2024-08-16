@@ -1,9 +1,16 @@
 from delta.tables import DeltaTable
+from pyspark.sql.functions import col
 
 class Data:
-    def read(self, table, partition, spark, log):
-        log.info(f'Lendo delta table {table} particao {partition}')
-        return spark.read.format('delta').load(table).where(f"datRefCarga='{partition}'")
+    def read(self, table, spark, log, maxPartition=False, partition=None):
+        if maxPartition:
+            maxPar = spark.read.format('delta').load(table).select("datRefCarga").orderBy(col("datProc").desc()).first()[0]
+            log.info(f'Lendo delta table {table} particao {maxPar}')
+            df = spark.read.format('delta').load(table).where(f"datRefCarga='{maxPar}'")
+        else:
+            log.info(f'Lendo delta table {table} particao {partition}')
+            df = spark.read.format('delta').load(table).where(f"datRefCarga='{partition}'")
+        return df
     
     def write(self, df, table, log, spark, partition):
         

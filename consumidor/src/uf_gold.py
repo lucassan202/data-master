@@ -7,7 +7,7 @@ class UfProblema():
     def run(spark, log, datRefCarga):        
         data = Data()
 
-        consumidor = data.read(sConsumidor, datRefCarga, spark, log)
+        consumidor = data.read(sConsumidor, spark, log, True)
 
         consumidor = consumidor.groupBy(col('nomefantasia'), col('uf'), col('datRefCarga'))\
                                 .agg(count(col('nomefantasia')).alias('qtdReclamcoesUf'))

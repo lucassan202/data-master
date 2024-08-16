@@ -7,7 +7,7 @@ class MediaAvaliacao():
     def run(spark, log, datRefCarga):        
         data = Data()
 
-        consumidor = data.read(sConsumidor, datRefCarga, spark, log)
+        consumidor = data.read(sConsumidor, spark, log, True)
 
         consumidor = consumidor.filter(~col('notaconsumidor').isNull())\
                                 .groupBy(col('nomefantasia'), col('datRefCarga'))\

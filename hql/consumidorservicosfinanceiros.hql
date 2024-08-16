@@ -29,7 +29,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS s_consumidor.consumidorservicosfinanceiros(
   avaliacaoreclamacao string, 
   notaconsumidor int, 
   analiserecusa string, 
-  datrefcarga string)
+  datrefcarga string,
+  datproc timestamp)
 ROW FORMAT SERDE 
   'org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe' 
 STORED BY 

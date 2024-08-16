@@ -7,7 +7,7 @@ class ReclamacaoTopTen():
     def run(spark, log, datRefCarga):        
         data = Data()
 
-        consumidor = data.read(sConsumidor, datRefCarga, spark, log)
+        consumidor = data.read(sConsumidor, spark, log, True)
 
         consumidor = consumidor.groupBy(col('nomefantasia'), col('datRefCarga'))\
           .agg(count(col('nomefantasia')).alias('qtdReclamcoes'))\
