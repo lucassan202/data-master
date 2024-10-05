@@ -1,0 +1,66 @@
+version: "3.5"
+
+# networks:
+#   hadoop-spark:
+#     name: hadoop-spark
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.47.2
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    networks:
+      - hadoop-spark
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: grafana
+    ports:
+      - 3000:3000
+    networks:
+      - hadoop-spark
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: cadvisor
+    restart: unless-stopped
+    networks:
+      - hadoop-spark
+    ports:
+      - 8082:8082
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    command:
+      - '--enable_metrics=advtcp,app,cpu,cpuLoad,cpu_topology,disk,diskIO,memory,memory_numa,network'
+      - '-port=8082'
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    networks:
+      - hadoop-spark
+    ports:
+      - 9100:9100      
+    command:
+      - '--path.rootfs=/host'
+    pid: host
+    volumes:
+      - '/:/host:ro,rslave'
+
+  hdfs_exporter:
+    image: marcelmay/hadoop-hdfs-fsimage-exporter
+    container_name: hdfs_exporter
+    networks:
+      - hadoop-spark
+    ports:
+      - 9709:9709      
+    environment:
+      JAVA_OPTS: "-server -XX:+UseG1GC -Xmx1024m"
+    volumes:
+      - hadoop_namenode:/fsimage-location
