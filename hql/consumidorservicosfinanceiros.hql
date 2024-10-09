@@ -28,18 +28,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS s_consumidor.consumidorservicosfinanceiros(
   situacao string, 
   avaliacaoreclamacao string, 
   notaconsumidor int, 
-  analiserecusa string, 
-  datrefcarga string,
-  datproc timestamp)
-ROW FORMAT SERDE 
-  'org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe' 
-STORED BY 
-  'io.delta.hive.DeltaStorageHandler' 
-WITH SERDEPROPERTIES ( 
-  'path'='hdfs://namenode:9000/data/consumidor/silver', 
-  'serialization.format'='1')
+  analiserecusa string)
+PARTITIONED BY (datrefcarga string) 
+STORED AS PARQUET
 LOCATION
-  'hdfs://namenode:9000/data/consumidor/silver'
-TBLPROPERTIES (
-  'spark.sql.sources.provider'='DELTA', 
-  'transient_lastDdlTime'='1716142206');
+  'hdfs://namenode:9000/data/consumidor/silver';

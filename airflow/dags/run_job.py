@@ -1,11 +1,26 @@
 import pendulum 
+from airflow.models import Variable
 
 from airflow.decorators import dag, task
-dat_ref_carga = '2024-06'
-path_project = '/home/besgam/Projetos/data-master/consumidor/shell/run.sh'
+
+dat_ref_carga = Variable.get('dat_ref_carga')
+
+path_project = Variable.get('path_project')
 
 @dag(schedule='@monthly', start_date=pendulum.datetime(2024, 7, 1), catchup=False)
 def run_jobs():
+    @task.bash
+    def run_download() -> str:
+        return f"{path_project} download {dat_ref_carga}"
+
+    run_download = run_download()
+
+    @task.bash
+    def run_bronze() -> str:
+        return f"{path_project} bronze {dat_ref_carga}"
+
+    run_bronze = run_bronze()
+
     @task.bash
     def run_silver() -> str:
         return f"{path_project} silver {dat_ref_carga}"
@@ -42,6 +57,9 @@ def run_jobs():
 
     run_uf = run_uf()   
 
-    (run_silver >> [run_grupo_problema, run_top_ten, run_avaliacao, run_resposta, run_uf])
+    (
+        run_download >> run_bronze >> run_silver >> \
+        [run_grupo_problema, run_top_ten, run_avaliacao, run_resposta, run_uf]
+    )    
 
 run_jobs()

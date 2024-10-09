@@ -5,8 +5,8 @@ networks:
     name: hadoop-spark    
     ipam:
       config:
-        - subnet: 172.19.0.0/16
-          gateway: 172.19.0.1
+        - subnet: 172.18.0.0/16
+          gateway: 172.18.0.1
 
 services:
   namenode:
@@ -25,7 +25,7 @@ services:
       - ./hadoop.env
     networks:
       hadoop-spark:
-        ipv4_address: 172.19.0.20
+        ipv4_address: 172.18.0.20
 
   datanode:
     image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
