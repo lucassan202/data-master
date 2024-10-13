@@ -1,9 +1,10 @@
-notebook/.ipynb_checkpoints
-notebook/metastore_db
-notebook/derby.log
-notebook/spark-warehouse
+.ipynb_checkpoints
+metastore_db
+derby.log
+spark-warehouse
 __pycache__
 *.csv
 *.txt
 hql/hive
 *.bst
+logs
