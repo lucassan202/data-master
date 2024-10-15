@@ -46,11 +46,7 @@
 ---
 networks:
   hadoop-spark:
-    name: hadoop-spark    
-    # ipam:
-    #   config:
-    #     - subnet: 172.20.0.0/16
-    #       gateway: 172.20.0.1
+    name: hadoop-spark
 
 x-airflow-common:
   &airflow-common

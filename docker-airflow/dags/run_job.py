@@ -49,7 +49,7 @@ def run_jobs():
 
     put_hdfs = BashOperator(
       task_id="put_hdfs",
-      bash_command=f"""docker exec namenode hdfs dfs -put /csv/basecompleta{dat_ref_carga}.csv /data/consumidor/landing""",      
+      bash_command=f"""docker exec namenode sh -c 'hdfs dfs -put -f /csv/basecompleta{dat_ref_carga}*.csv /data/consumidor/landing'""",      
     )
 
     run_bronze = DockerOperator(

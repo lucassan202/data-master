@@ -4,7 +4,7 @@ derby.log
 spark-warehouse
 __pycache__
 *.csv
-*.txt
+airflow_standalone.txt
 hql/hive
 *.bst
 logs

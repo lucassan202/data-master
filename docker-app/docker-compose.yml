@@ -1,0 +1,38 @@
+version: "3.5"
+
+networks:
+  hadoop-spark:
+    name: hadoop-spark    
+
+services:
+  selenium:
+    image: selenium/standalone-firefox:4.25.0-20241010
+    container_name: selenium
+    shm_size: 2gb
+    ports:
+      - "4444:4444"
+    networks:
+      - hadoop-spark
+
+  kafka:
+    image: confluentinc/cp-kafka:5.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    environment: 
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+    networks:
+      - hadoop-spark
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - hadoop-spark

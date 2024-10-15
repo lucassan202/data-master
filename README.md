@@ -38,7 +38,7 @@ O dicionário de dados que o consumidor.gov.br disponibiliza, se encontra na ra�
 ```
 dicionario-de-dados-consumidorgovbr-v3.pdf
 ```
-### 2.2. Arquitetura
+### 2.2. Arquitetura de dados
     
 Para o projeto foi utilizada a arquitetura `Medalhão` de dados. Que pode ser ilustrada na figura abaixo:
     
@@ -48,17 +48,32 @@ Seu principal benefício é realizar uma organização dentro do repositório, d
 
 Além da arquitetura de dados, o projeto conta com ferramentas de observabilidade (`Prometheus`, `Grafana`), orquestração `Airflow` para execução dos pipelines de ingestão de dados e dashboards interativos para visualização dos dados utilizando o `Power BI`.
 
+### 2.3. Arquitetura Sistema
+
+O sistema esta dividido em dois pipelines `batch` e `streaming`. Onde o pipeline batch realiza a extração dos CSVs mensalmente, e o stream que realiza a extração de dados como relatos, respostas e comentários das reclamações do site consumidor.gov.
+
+Abaixo os desenhos das arquiteturas:
+
+#### 2.3.1 Arquitetura Batch
+
+![Arquitetura batch](/img/arquitetura_batch_2.png)
+
+#### 2.3.2 Arquitetura Stream
+
+![Arquitetura stream](/img/arquitetura_stream.png)
+
 ## 3. Solução técnica
 
 ### 3.1.   Pré requisitos
     
-- O projeto foi desenvolvido com as seguintes configurações, não sendo recomendado menos recursos do que estes.
+#### 3.1.1 Requisitos mínimos recomendados:
+    
+- 16 GB RAM
+- CPU 4 núcleos 8 treads ou superior
 
-    ![System](/img/system.png)
+#### 3.1.2  Sofwares
 
 - Docker
-- Anaconda 1.12.3 com python 3.8
-- Airflow standalone
 - Power BI
 - VSCode
     
@@ -75,11 +90,10 @@ Foram realizadas algumas alterações e melhorias para  adaptação ao cenário 
 O cluster pode ser iniciado com o seguinte comando:
 
 ```
-cd docker-hadoop-spark/
-docker-compose up
+make deploy_all
 ```
 
-Após todos os serviços subirem, será necessário algumas configurações.
+Após todos os serviços subirem, será necessário algumas configurações caso você deseje executar o spark localmente.
 
 No terminal inspecione a rede `hadoop-spark` e confira qual `IPv4Address` foi atribuido para o`namenode`, este ip deve ser adicionado no seu `etc/hosts` conforme imagens abaixo
 
@@ -91,56 +105,44 @@ vi /etc/hosts
     
 ![System](/img/namenode_ip.png)
 ![System](/img/hosts.png)
-    
-Após é possível iniciar o projeto executando via bash no terminal, mais a frente irei mostrar como executar de forma automatizada utilizando o`Airflow` no item [6. Execução automatizada Airflow ](#6-execução-automatizada-airflow)
 
-## 4. Iniciando o projeto
 
-Primeiramente devemos iniciar nosso spark stream que irá realizar a ingestão do csv do consumidor.gov.br na nossa camada bronze. Por default o path onde o processo irá buscar o csv é o `/consumidor/csv` sendo possível altera-lo na shell `/consumidor/shell/run.sh` variável `csv_path`.
+## 4. Sobre o projeto
 
-```
-bash /consumidor/shell/run.sh stream_bronze
-```
-Este processo fica aguardando novos arquivos caírem no diretório para realizar a ingestão na camada bronze.
+### 4.1 run_download
 
-O seguinte processo é a ingestão, filtro e tratamento dos dados na camada silver, nele é realizado a filtragem apenas para área de serviços financeiros e bancos. O segundo parametro da shell é a data de extração do arquivo csv. Ex.: 2024-05
+O pipeline batch há 9 procedimentos, começando pelo `run_download` que é responsável por realizar o download do arquivo CSV de uma forma automática, nesta etapa é utilizada uma biblioteca python chamada `beatiful soap` para realizar a extração do html buscando assim o link do arquivo para download, a busca é realizada através da data (dat_ref_carga), passada pelo airflow. Mais a frente irei explicar como a data é inserida no processo.
 
-```
-bash /consumidor/shell/run.sh silver 2024-05
-```
-Por fim temos 5 visoẽs de agrupamento na camada gold onde:
+### 4.2 put_hdfs
+
+O `put_hdfs` é responsável por copiar o arquivo que foi baixado localmente para o hdfs e assim os demais processos conseguirem processa-lo
+
+### 4.3 run_bronze
+O `run_bronze` é o processo reponsável pela ingestão e a transformação do arquivo csv em parquet, sem haver nenhum tratamento de dados ou filtros, é ingestado assim como é recebido.
+
+### 4.4 run_silver
+
+O `run_silver` é o processo reponsável pela ingestão, filtro e tratamento dos dados na camada silver a partir do parquet bronze, nele é realizado a filtragem apenas para área de serviços financeiros e bancos.
+
+### 4.5 processamentos gold
+
+Por fim temos 5 processamentos de visoẽs de agrupadas na camada gold onde:
         
-- `Reclamação Top Ten:` top 10 reclamações no mês específico por instituição.
+- `run_top_ten:` top 10 reclamações no mês específico por instituição.
 
-- `Grupo problema:` reúne as categorias dos principais problemas apontados pelos consumidores
+- `run_grupo_problema:` reúne as categorias dos principais problemas apontados pelos consumidores
 
-- `Agrupamento por UF:` realiza o agrupamento(contagem) por UF e nome da instituição
+- `run_uf:` realiza o agrupamento(contagem) por UF e nome da instituição
 
-- `Média Avaliação:` reúne a média agrupada de avaliações dos consumidores por instituição.
+- `run_avaliacao` reúne a média agrupada de avaliações dos consumidores por instituição.
 
-- `Média Tempo de Resposta:` reúne a média agrupada por tempo de resposta em dias que a instituição leva.
+- `run_resposta` reúne a média agrupada por tempo de resposta em dias que a instituição leva.
 
-```
-bash /consumidor/shell/run.sh grupo_problema 2024-05
 
-bash /consumidor/shell/run.sh top_ten 2024-05
+Logo após as inserções na camada gold, podemos visualizar os dados através do hive.
 
-bash /consumidor/shell/run.sh avaliacao 2024-05
 
-bash /consumidor/shell/run.sh resposta 2024-05
-
-bash /consumidor/shell/run.sh uf 2024-05
-```
-
-Logo após as inserções na camada gold, podemos visualizar os dados através do hive, mas para isso é necessário criar as tabelas apontando para os diretórios da camada gold. Abaixo o script para criação das tabelas.
-
-```
-docker exec -it hive-server bash
-
-bash /opt/hql/create_tables.sh
-```
-
-Tabelas criadas após a execução do script:
+Tabelas para consulta:
 
 ```
 b_consumidor.consumidor
@@ -182,32 +184,30 @@ Resultado da consulta:
 ![System](/img/sql_result.png)
 
 ## 6. Execução automatizada Airflow 
-Para execução do airflow standalone utilize os comandos abaixo. Recomendo a utilização da porta 9998 pois a porta 8080 já esta sendo utilizada pelo `spark master`
-```
-airflow webserver --port 9998
 
-airflow scheduler
+Para acessar o airflow utilize o seguinte endereço
 ```
-Copie as dags do projeto para dentro do path default do `airflow`
-```
-export MY_DIR=$(cd $(dirname "${0}"); pwd)
-
-cp ./airflow/dags/*.py $MY_DIR/airflow/dags
+localhost:9999
 ```
 
-A dag run_jobs esta programada para rodar mensalmente e realizar a ingestão da data atual. Para execução manual é necessário alterar no arquivo `run_jobs.py` a variável `dat_ref_carga` para o ano-mês desejado.
+A dag run_jobs esta programada para rodar mensalmente e realizar a ingestão de M-2. Para execução manual é necessário alterar no airflow no seguinte path `Admin->Variables` a variável `dat_ref_carga` para o ano-mês desejado.
+
+![System](/img/airflow_variables.png)
+![System](/img/airflow_edit_variable.png)
 
 Necessário também alterar o path de apontamento do projeto na variável `path_project`
 
-![System](/img/run_jobs_var.png)
+![System](/img/airflow_path_project.png)
     
-Acesse o endereço `http://localhost:9998/` e execute as dags `run_stream` e `run_jobs`
+Execute as dags `run_screp` e `run_jobs`
 
-Job stream que realiza a inserção do csv na camada bronze:
-![System](/img/run_stream.png)
+- Job Screp que realiza a busca dos textos das reclamações e insere em um tópico no `kafka`:
+
+    ![System](/img/airflow_screp.png)
     
-Execução da ingestão na camada silver e gold posteriormente:
-![System](/img/run_jobs.png)
+- Job Run executa a extração do CSV(download) e ingestões na camada bronze, silver e gold posteriormente:
+
+    ![System](/img/run_jobs_airflow.png)
 
 
 ## 7. Monitoramento e observabilidade
@@ -222,7 +222,6 @@ Há também os exporters que são utilizados para extrair/coletar as métricas n
 No projeto estamos utilizando os seguintes exporters:
 
 * `hdfs_exporter` - Exporta estatísticas do Hadoop HDFS como número de diretórios, número de arquivos, número de blocos etc.
-* `node_exporter` - Exporta dados de telemetria de um nó especifico 
 * `cadvisor` - Exporta dados de telemetria do docker
 
 Para acessar o `grafana`, utilize o seguinte endereço `localhost:3000` usuário `admin` e senha `admin`. Após acessar vá em Connections -> Data source e clique em `+ Add new data source`.
@@ -239,9 +238,6 @@ Na home clique em dashboards e depois no botão `New`, vá na opção `Import`.
 
     ![System](/img/docker-monitor.png)
 
-- Dashboard node-exporter utilize o código `1860`
-
-    ![System](/img/node-exporter.png)
 
 ## 8. Dashboards e visualizações dos dados
 
@@ -280,14 +276,17 @@ Você pode importar as visualizações pré prontas no seguinte diretório do pr
      ![System](/img/tempo_medio_reposta.png)     
 
 ## 9. Pontos de melhoria
+### 9.1 A realizar
 
-- Processo batch para baixar automaticamente arquivo na origem;
-- Criar alertas nas ferramentas de monitoramento(grafana e airflow), caso haja gargalos de recursos e problemas nas execuções;
-- Dimensionar recursos para execução dos processos;
-- Criar ferramenta de extração dos textos das reclamações do site consumidor.gov para realizar uma análise mais detalhada dos motivos das reclamações;
 - A partir dos textos realizar análise de sentimento e inferir notas;
 - Implementar integração com ferramentas cloud para escalonamento de recursos;
 - Criar outras visualizações gold a partir dos dados silver como faixa etária, como contratou, orgão responsável pela reclamação, se procurou a empresa antes da reclamação, etc;
+- Criar alertas nas ferramentas de monitoramento(grafana e airflow), caso haja gargalos de recursos e problemas nas execuções(parcialmente);
+- Dimensionar recursos para execução dos processos(parcialmente);
+
+### 9.1 Realizadas
+- Criar ferramenta de extração dos textos das reclamações do site consumidor.gov para realizar uma análise mais detalhada dos motivos das reclamações;
+- Processo batch para baixar automaticamente arquivo na origem;
 
 ## 10. Conclusão
 
