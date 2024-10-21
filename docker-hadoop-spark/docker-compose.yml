@@ -139,6 +139,8 @@ services:
 
   hive-metastore-postgresql:
     image: bde2020/hive-metastore-postgresql:2.3.0
+    ports:
+      - "5432:5432"
     container_name: hive-metastore-postgresql
     networks:
       - hadoop-spark

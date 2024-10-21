@@ -5,6 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.options import Options
 from kafka import KafkaProducer
 from datetime import datetime
+import json
 
 class ScrepReclamacoes():
     def run(log):
@@ -23,9 +24,10 @@ class ScrepReclamacoes():
             tab_relatos = driver.find_element(By.ID, "li_tab_relatos")
             tab_relatos.click()
 
-            wait.until(EC.presence_of_element_located((By.ID, 'contador')))
+            wait.until(EC.visibility_of_element_located((By.ID, 'contador')))
             contador = driver.find_element(By.ID, 'contador')
 
+            log.info(f"texto contador: {contador.text}")
             data_hora = contador.text.split('desde')[1].strip().replace(',', '')
             data_atu = datetime.strptime(data_hora, '%d/%m/%Y %H:%M:%S')
 
@@ -40,7 +42,7 @@ class ScrepReclamacoes():
 
             if data_atu<=data_pas:
                 print("Não há atualizações")
-                driver.close()
+                #driver.close()
                 exit(0)
 
             while data_atu>data_pas:
@@ -48,6 +50,7 @@ class ScrepReclamacoes():
                 btn_mais_resultados = driver.find_element(By.ID, "btn-mais-resultados")
                 btn_mais_resultados.click()
 
+                wait.until(EC.visibility_of_element_located((By.ID, 'contador')))
                 contador = driver.find_element(By.ID, 'contador')
                 data_hora_l = contador.text.split('desde')[1].strip().replace(',', '')    
                 data_atu = datetime.strptime(data_hora_l, '%d/%m/%Y %H:%M:%S')
@@ -113,11 +116,16 @@ class ScrepReclamacoes():
 
             relatos = list(zip(empresas,lst_status,tempo_respostas, datas, cidades, ufs, relatos, respostas, notas, comentarios))            
 
-            #log.info(relatos)
+            keys = ['nomeEmpresa' ,'status' ,'tempoResposta' ,'dataOcorrido' ,'Cidade' ,'UF' ,'Relato' ,'Resposta' ,'Nota' ,'Comentario']
+            lst_relatos = []
+            for item in relatos:
+               key_value_pairs = zip(keys, item)
+               my_dict = dict(key_value_pairs)
+               lst_relatos.append(my_dict)
 
             producer = KafkaProducer(bootstrap_servers=["kafka:9092"])
 
-            producer.send("reclamacoes", str(relatos).encode())
+            producer.send("reclamacoes", str(lst_relatos).encode())
 
             log.info("enviado para Kafka")
         except Exception as error:

@@ -34,3 +34,9 @@ create_tables:
 
 build_app:
 	docker build -t consumidor-app:latest docker-app/consumidor/.
+
+deploy_postgres:
+	docker compose -f docker-postgres/docker-compose.yml up -d
+
+down_postgres:
+	docker compose -f docker-postgres/docker-compose.yml down

@@ -1,4 +1,4 @@
-#from src.stream_bronze import StreamBronze
+from src.stream import Stream
 from src.silver import Silver
 from src.problema_gold import GrupoProblema
 from src.reclamacao_gold import ReclamacaoTopTen
@@ -22,13 +22,12 @@ class Main():
     processamento=sys.argv[1]
 
     log.info(f"Processamento {processamento}")
-    if processamento == 'stream_bronze':
-        parm2 = sys.argv[2]
-        log.info(f"Path read stream csv {parm2}")
-    else:
-        parm2=sys.argv[2]
-        log.info(f"Data processamento {parm2}")
-
+    # if processamento == 'stream':
+    #     parm2 = sys.argv[2]
+    #     log.info(f"Path read stream csv {parm2}")
+    # else:
+    parm2=sys.argv[2]
+    log.info(f"Data processamento {parm2}")
     
     spark = SparkSession.builder.appName(processamento) \
         .config("hive.exec.dynamic.partition.mode", "nonstrict") \
@@ -37,9 +36,8 @@ class Main():
 
     def main(spark, processamento, log, parm2):    
         
-        if processamento == 'stream_bronze':
-            #StreamBronze.run(spark, log, parm2)
-            Bronze.run(spark, log, parm2, sys.argv[3])
+        if processamento == 'stream':
+            Stream.run(spark, log)            
         elif processamento == 'silver':
             Silver.run(spark, log, parm2)
         elif processamento == 'grupo_problema':

@@ -1,15 +1,45 @@
 import pendulum 
+from airflow.models import Variable
+from datetime import timedelta, datetime
+from airflow.decorators import dag
+from airflow.providers.docker.operators.docker import DockerOperator
+from docker.types import Mount
+from airflow.operators.bash import BashOperator
 
-from airflow.decorators import dag, task
+if Variable.get('dat_ref_carga') == "":
+    dat_ref_carga = datetime.now() - timedelta(days=60)
+    dat_ref_carga = dat_ref_carga.strftime("%Y-%m")
+else:    
+    dat_ref_carga = Variable.get('dat_ref_carga')
 
-path_project = '/home/besgam/Projetos/data-master/consumidor/shell/run.sh'
+path_project = Variable.get('path_project')
 
-@dag(schedule='@monthly', start_date=pendulum.datetime(2024, 7, 1), catchup=False)
-def run_stream():
-    @task.bash
-    def run() -> str:
-        return f"{path_project} stream_bronze"
+default_args = {
+    'email': ['lucas.san20@gmail.com'],
+    'email_on_failure': True,
+    'email_on_retry': True,
+    # 'retries': 1,
+    # 'retry_delay': timedelta(minutes=1),
+    'start_date': pendulum.datetime(2024, 7, 1)
+}
 
-    run()
+COMMON_DOCKER_OP = dict(
+  image="consumidor-app:latest",
+  docker_url="unix:/var/run/docker.sock",
+  auto_remove=True,
+  mount_tmp_dir=False,
+  network_mode='hadoop-spark',
+)
+
+@dag(schedule='@daily', catchup=False, default_args=default_args)
+def run_stream():    
+    run_scre = DockerOperator(
+        **COMMON_DOCKER_OP,
+        task_id='run_stream',
+        entrypoint=f"sh /app/shell/run.sh stream {dat_ref_carga}",
+        container_name='consumidor-app-stream',
+    )
+
+    (run_stream) 
 
 run_stream()
