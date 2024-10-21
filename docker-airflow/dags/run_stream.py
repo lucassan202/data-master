@@ -33,13 +33,13 @@ COMMON_DOCKER_OP = dict(
 
 @dag(schedule='@daily', catchup=False, default_args=default_args)
 def run_stream():    
-    run_scre = DockerOperator(
+    run_strem = DockerOperator(
         **COMMON_DOCKER_OP,
         task_id='run_stream',
         entrypoint=f"sh /app/shell/run.sh stream {dat_ref_carga}",
         container_name='consumidor-app-stream',
     )
 
-    (run_stream) 
+    (run_strem) 
 
 run_stream()
