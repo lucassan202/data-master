@@ -24,6 +24,7 @@ class Stream():
           .format("kafka") \
           .option("kafka.bootstrap.servers", "kafka:9092") \
           .option("subscribe", "reclamacoes") \
+          .option("failOnDataLoss", "false") \
           .load()
         
         lstRelatos = inputDF.withColumn('date_ingest', col('timestamp').cast(DateType())) \

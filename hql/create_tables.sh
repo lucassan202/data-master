@@ -6,3 +6,4 @@ beeline -u jdbc:hive2://localhost:10000 -n root -f /opt/hql/mediaavaliacao.hql
 beeline -u jdbc:hive2://localhost:10000 -n root -f /opt/hql/mediaresposta.hql
 beeline -u jdbc:hive2://localhost:10000 -n root -f /opt/hql/reclamacaotopten.hql
 beeline -u jdbc:hive2://localhost:10000 -n root -f /opt/hql/reclamacaouf.hql
+beeline -u jdbc:hive2://localhost:10000 -n root -f /opt/hql/stream_relatos.hql

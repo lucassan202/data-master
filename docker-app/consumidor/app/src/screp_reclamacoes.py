@@ -16,13 +16,13 @@ class ScrepReclamacoes():
             driver = webdriver.Remote(options=options,command_executor="http://selenium:4444")
             log.info("Driver inciado")
 
-            driver.get("https://consumidor.gov.br/pages/indicador/geral/abrir")
+            driver.get("https://consumidor.gov.br/pages/indicador/relatos/abrir")
 
             wait = WebDriverWait(driver, 60)
-            wait.until(EC.element_to_be_clickable((By.ID, 'li_tab_relatos')))
+            # wait.until(EC.element_to_be_clickable((By.ID, 'li_tab_relatos')))
 
-            tab_relatos = driver.find_element(By.ID, "li_tab_relatos")
-            tab_relatos.click()
+            # tab_relatos = driver.find_element(By.ID, "li_tab_relatos")
+            # tab_relatos.click()
 
             wait.until(EC.visibility_of_element_located((By.ID, 'contador')))
             contador = driver.find_element(By.ID, 'contador')
@@ -72,24 +72,24 @@ class ScrepReclamacoes():
             lst_status = []
 
             for status in rel_status:
-                lst_status.append(status.text)
-
-            rel_datas = resultados.find_elements(By.CLASS_NAME, 'relatos-data')
+                lst_status.append(status.text)                    
 
             tempo_respostas = []
             datas = []
             cidades = []
-            ufs = []
-            count = 1
+            ufs = []            
+
+            lst_ocorrido = resultados.find_elements(By.XPATH, "//div[3]/span")
+
+            for data in lst_ocorrido:
+                datas.append(data.text.split(',')[0])
+                cidades.append(data.text.split(',')[1].split('-')[0].strip())
+                ufs.append(data.text.split(',')[1].split('-')[1].strip())
+
+            rel_datas = resultados.find_elements(By.XPATH, "//div[4]/span")
 
             for data in rel_datas:
-                if count % 2 == 0:
-                    tempo_respostas.append(data.text.replace('(','').replace(')',''))   
-                else:
-                    datas.append(data.text.split(',')[0])
-                    cidades.append(data.text.split(',')[1].split('-')[0].strip())
-                    ufs.append(data.text.split(',')[1].split('-')[1].strip())
-                count=count+1
+                tempo_respostas.append(data.text.replace('(','').replace(')',''))
 
             lst_relatos = resultados.find_elements(By.XPATH, "//div[3]/p")
             lst_respostas = resultados.find_elements(By.XPATH, "//div[4]/p")
