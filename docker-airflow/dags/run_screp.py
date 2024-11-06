@@ -18,8 +18,8 @@ default_args = {
     'email': ['lucas.san20@gmail.com'],
     'email_on_failure': True,
     'email_on_retry': True,
-    # 'retries': 1,
-    # 'retry_delay': timedelta(minutes=1),
+    'retries': 1,
+    'retry_delay': timedelta(minutes=1),
     'start_date': pendulum.datetime(2024, 7, 1)
 }
 
