@@ -185,6 +185,18 @@ services:
     container_name: hive-metastore-postgresql
     networks:
       - hadoop-spark
+
+  hdfs_exporter:
+    image: marcelmay/hadoop-hdfs-fsimage-exporter
+    container_name: hdfs_exporter
+    networks:
+      - hadoop-spark
+    ports:
+      - 9709:9709      
+    environment:
+      JAVA_OPTS: "-server -XX:+UseG1GC -Xmx1024m"
+    volumes:
+      - hadoop_namenode:/fsimage-location      
       
 volumes:
   hadoop_namenode:

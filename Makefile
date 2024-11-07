@@ -60,3 +60,9 @@ start_stream:
 
 stop_stream:
 	docker container stop consumidor-app-stream-stand
+
+deploy_monitor:
+	docker compose -f docker-monitor/docker-compose.yml up -d
+
+down_monitor:
+	docker compose -f docker-monitor/docker-compose.yml down
